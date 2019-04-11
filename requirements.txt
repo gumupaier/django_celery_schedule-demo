@@ -1,0 +1,11 @@
+redis==2.10.5
+pycrypto
+raven
+django==1.11
+django-celery==3.2.2
+celery==4.1.0
+flower
+sendgrid
+django-celery-beat
+django-redis
+anyjson

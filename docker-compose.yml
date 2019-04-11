@@ -1,0 +1,70 @@
+version: '3'
+services:
+  redis:
+      image: 'redis:latest'
+      volumes:
+        - ./redis_data:/data
+      command: [redis-server, --appendonly yes]
+      ports:
+        - 6379:6379
+  celery-mysql:
+    image: "mysql:5.7.20"
+    ports:
+      - 3306:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=123456
+      - MYSQL_DATABASE=celery_db
+    volumes:
+      - ./_db:/var/lib/mysql
+    command: [mysqld, --character-set-server=utf8mb4, --collation-server=utf8mb4_unicode_ci]
+
+  django_celery_schedule:
+    build: .
+    volumes:
+      - .:/work
+    environment:
+      - DEBUG=true
+      - DB_HOST=celery-mysql
+      - DB_NAME=celery_db
+      - DB_PASSWORD=123456
+      - DB_USER=root
+      - DEBUG=True
+      - REDIS_HOST=redis
+    links:
+      - redis
+      - celery-mysql
+    ports:
+      - 13777:13777
+  django_celery_schedule_worker:
+    build: .
+    volumes:
+      - .:/work
+    environment:
+      - DEBUG=true
+      - DB_HOST=celery-mysql
+      - DB_NAME=celery_db
+      - DB_PASSWORD=123456
+      - DB_USER=root
+      - REDIS_HOST=redis
+      - DEBUG=True
+    links:
+      - redis
+      - celery-mysql
+    command: celery worker -A django_celery_schedule -l info
+
+  django_celery_schedule_beat:
+    build: .
+    volumes:
+      - .:/work
+    environment:
+      - DEBUG=true
+      - DB_HOST=celery-mysql
+      - DB_NAME=celery_db
+      - DB_PASSWORD=123456
+      - DB_USER=root
+      - DEBUG=True
+      - REDIS_HOST=redis
+    links:
+      - redis
+      - celery-mysql
+    command: celery -A django_celery_schedule beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
