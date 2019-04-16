@@ -15,7 +15,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'django_celery_schedule.settings
 
 app = Celery("django_celery_schedule")
 
-app.config_from_object('django.conf:settings', namespace='CELERY')  # 使用CELERY_ 作为前缀，在settings中写配置
+app.config_from_object(settings, namespace='CELERY')  # 使用CELERY_ 作为前缀，在settings中写配置
 
 app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)  # 发现任务文件每个app下的task.py
 
